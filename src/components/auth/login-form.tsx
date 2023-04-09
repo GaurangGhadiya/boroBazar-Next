@@ -12,6 +12,10 @@ import Switch from '@components/ui/switch';
 import CloseButton from '@components/ui/close-button';
 import { FaFacebook, FaTwitter, FaLinkedinIn } from 'react-icons/fa';
 import cn from 'classnames';
+import { SuccessToast } from '@components/toaster';
+import axios from 'axios';
+import { useUI } from '@contexts/ui.context';
+import Cookies from 'js-cookie';
 
 interface LoginFormProps {
   isPopup?: boolean;
@@ -21,6 +25,8 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ isPopup = true, className }) => {
   const { t } = useTranslation();
   const { closeModal, openModal } = useModalAction();
+  const { authorize } = useUI();
+
   const { mutate: login, isLoading } = useLoginMutation();
   const [remember, setRemember] = useState(false);
 
@@ -31,13 +37,28 @@ const LoginForm: React.FC<LoginFormProps> = ({ isPopup = true, className }) => {
   } = useForm<LoginInputType>();
 
   function onSubmit({ email, password, remember_me }: LoginInputType) {
-    login({
-      email,
-      password,
-      remember_me,
-    });
-    closeModal();
-    console.log(email, password, remember_me, 'data');
+    axios
+      .post(`${process.env.NEXT_PUBLIC_REST_API_ENDPOINT}/auth/signin`, {
+        email,
+        password,
+      })
+      .then((res) => {
+        console.log(res);
+        Cookies.set('auth_token', res?.data?.token);
+        authorize();
+        closeModal();
+        SuccessToast('Sign In Successfully');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    // login({
+    //   email,
+    //   password,
+    //   remember_me,
+    // });
+    // closeModal();
+    // console.log(email, password, remember_me, 'data');
   }
   function handelSocialLogin() {
     login({

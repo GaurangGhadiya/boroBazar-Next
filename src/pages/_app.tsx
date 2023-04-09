@@ -20,11 +20,14 @@ import '@styles/swiper-carousel.css';
 import '@styles/custom-plugins.css';
 import '@styles/tailwind.css';
 import { getDirection } from '@utils/get-direction';
+import useWindowSize from '@utils/use-window-size';
 
 const Noop: React.FC = ({ children }) => <>{children}</>;
 
 const CustomApp = ({ Component, pageProps }: AppProps) => {
   const queryClientRef = useRef<any>();
+  const { width } = useWindowSize();
+
   if (!queryClientRef.current) {
     queryClientRef.current = new QueryClient();
   }
@@ -44,7 +47,15 @@ const CustomApp = ({ Component, pageProps }: AppProps) => {
             <Layout pageProps={pageProps}>
               <Component {...pageProps} key={router.route} />
             </Layout>
-            <ToastContainer />
+            <ToastContainer
+              progressClassName="fancy-progress-bar"
+              position={width! > 768 ? 'bottom-right' : 'top-right'}
+              autoClose={1500}
+              hideProgressBar={false}
+              closeOnClick={true}
+              pauseOnHover={true}
+              draggable={true}
+            />
             <ManagedModal />
             <ManagedDrawer />
           </>

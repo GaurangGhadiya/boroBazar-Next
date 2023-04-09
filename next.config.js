@@ -11,5 +11,12 @@ module.exports = withPWA({
   i18n,
   typescript: {
     ignoreBuildErrors: true,
+  },async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:7000/api/:path*',
+      },
+    ]
   },
 });

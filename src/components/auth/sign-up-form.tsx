@@ -13,6 +13,9 @@ import Switch from '@components/ui/switch';
 import CloseButton from '@components/ui/close-button';
 import cn from 'classnames';
 import { ROUTES } from '@utils/routes';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { SuccessToast } from '@components/toaster';
 
 interface SignUpFormProps {
   isPopup?: boolean;
@@ -40,13 +43,28 @@ const SignUpForm: React.FC<SignUpFormProps> = ({
     return openModal('FORGET_PASSWORD');
   }
   function onSubmit({ name, email, password, remember_me }: SignUpInputType) {
-    signUp({
-      name,
-      email,
-      password,
-      remember_me,
-    });
-    console.log(name, email, password, 'sign form values');
+    axios
+      .post(`${process.env.NEXT_PUBLIC_REST_API_ENDPOINT}/auth/signup`, {
+        name,
+        email,
+        password,
+      })
+      .then((res) => {
+        console.log(res);
+        closeModal();
+        SuccessToast('Sign Up Successfully');
+        openModal('LOGIN_VIEW');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    // signUp({
+    //   name,
+    //   email,
+    //   password,
+    //   remember_me,
+    // });
+    // console.log(name, email, password, 'sign form values');
   }
   return (
     <div

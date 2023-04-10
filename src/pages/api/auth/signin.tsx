@@ -1,15 +1,22 @@
 import { connectMongoDb } from 'middleware/mongoose';
 import userModel from 'models/user';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 var CryptoJS = require('crypto-js');
 var jwt = require('jsonwebtoken');
 
-export default async function handler(req: any, res: any) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   try {
     await connectMongoDb();
     if (req.method == 'POST') {
       try {
-        let userData = await userModel.findOne({ email: req.body.email });
+        let userData = await userModel.findOne(
+          { email: req.body.email },
+          { name: 1, email: 1, password: 1 }
+        );
         if (userData) {
           var bytes = CryptoJS.AES.decrypt(
             userData.password,
@@ -20,27 +27,33 @@ export default async function handler(req: any, res: any) {
             req.body.email == userData.email &&
             req.body.password == originalText
           ) {
-            var token = jwt.sign({ ...userData }, process.env.JWT_SECRET);
-
+            var token = jwt.sign(
+              { name: userData.name, email: userData.email, id: userData?._id },
+              process.env.JWT_SECRET
+            );
+            let response = {
+              name: userData.name,
+              email: userData.email,
+              token: token,
+              id: userData.id,
+            };
             return res
               .status(200)
-              .json({ message: 'Sign in Successfully', token, data: userData });
+              .json({ message: 'Sign in Successfully', data: response });
           } else {
             return res.status(400).json({ message: 'invalid credential' });
           }
         } else {
-          return res.status(400).json({ error: 'user not found' });
+          return res.status(400).json({ message: 'user not found' });
         }
       } catch (err) {
         console.error(err);
-        return res
-          .status(400)
-          .json({ error: 'Something went wrong', err: err });
+        return res.status(400).json({ message: 'Something went wrong' });
       }
     } else {
-      return res.status(400).json({ error: 'This method is not allowed' });
+      return res.status(400).json({ message: 'This method is not allowed' });
     }
   } catch (e) {
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }

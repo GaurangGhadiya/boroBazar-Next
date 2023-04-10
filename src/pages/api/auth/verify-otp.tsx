@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { connectMongoDb } from '../../../../middleware/mongoose';
 import userModel from '../../../../models/user';
 var CryptoJS = require('crypto-js');
+const nodemailer = require('nodemailer');
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,26 +12,19 @@ export default async function handler(
     await connectMongoDb();
     if (req.method == 'POST') {
       try {
-        let user = await userModel.findOne({ email: req.body.email });
-        if (user) {
-          return res.status(400).json({ message: 'user already found' });
-        } else {
-          var ciphertext = CryptoJS.AES.encrypt(
-            req.body.password,
-            process.env.AES_SECRET
-          ).toString();
+        let isAlready = await userModel.findOne(req.body);
+        if (isAlready) {
+          let response = {
+            name: isAlready?.name,
+            email: isAlready?.email,
+            id: isAlready?.id,
+          };
 
-          var data = await new userModel({
-            name: req.body.name,
-            email: req.body.email,
-            password: ciphertext,
-          }).save();
-          // let data = await userData.save();
-          console.log('data', data);
-          if (data)
-            return res
-              .status(200)
-              .json({ message: 'Sign Up Successfully', data: data });
+          return res
+            .status(200)
+            .json({ message: 'Invalid OTP', data: response });
+        } else {
+          return res.status(400).json({ message: 'Invalid OTP' });
         }
       } catch (err) {
         console.log('err', err);

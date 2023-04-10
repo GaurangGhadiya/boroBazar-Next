@@ -12,7 +12,7 @@ import Switch from '@components/ui/switch';
 import CloseButton from '@components/ui/close-button';
 import { FaFacebook, FaTwitter, FaLinkedinIn } from 'react-icons/fa';
 import cn from 'classnames';
-import { SuccessToast } from '@components/toaster';
+import { ErrorToast, SuccessToast } from '@components/toaster';
 import axios from 'axios';
 import { useUI } from '@contexts/ui.context';
 import Cookies from 'js-cookie';
@@ -50,7 +50,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ isPopup = true, className }) => {
         SuccessToast('Sign In Successfully');
       })
       .catch((err) => {
-        console.log(err);
+        ErrorToast('User not found');
       });
     // login({
     //   email,

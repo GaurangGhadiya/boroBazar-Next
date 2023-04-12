@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { connectMongoDb } from '../../../../middleware/mongoose';
 import userModel from '../../../../models/user';
-import categoryModel from 'models/category';
+import productModel from 'models/product';
 var CryptoJS = require('crypto-js');
 const nodemailer = require('nodemailer');
 var jwt = require('jsonwebtoken');
@@ -12,27 +12,27 @@ export default async function handler(req: any, res: NextApiResponse) {
     if (req.method == 'GET') {
       try {
         if (req.query?.id) {
-          let category = await categoryModel.findOne({ _id: req.query?.id });
-          if (category) {
+          let product = await productModel.findOne({ _id: req.query?.id });
+          if (product) {
             return res
               .status(200)
-              .json({ message: 'category found', data: category });
+              .json({ message: 'product found', data: product });
           } else {
-            return res.status(400).json({ message: 'category not found' });
+            return res.status(400).json({ message: 'product not found' });
           }
         } else {
           let { limit, page } = req.query;
           if (limit && page) {
-            let category = await categoryModel
+            let product = await productModel
               .find({})
               .skip((page - 1) * limit)
               .limit(limit);
-            if (category) {
+            if (product) {
               return res
                 .status(200)
-                .json({ message: 'all category found', data: category });
+                .json({ message: 'all product found', data: product });
             } else {
-              return res.status(400).json({ message: 'category not getting' });
+              return res.status(400).json({ message: 'product not getting' });
             }
           } else {
             return res
@@ -46,22 +46,18 @@ export default async function handler(req: any, res: NextApiResponse) {
       }
     } else if (req.method == 'POST') {
       try {
-        let category = await categoryModel.findOne({ slug: req.body.slug });
-        if (category) {
-          return res.status(400).json({ message: 'category already exist' });
+        let product = await productModel.findOne({ slug: req.body.slug });
+        if (product) {
+          return res.status(400).json({ message: 'product already exist' });
         } else {
-          var data = await new categoryModel({
-            slug: req.body?.slug,
-            name: req.body?.name,
-            image: req.body?.image,
-          }).save();
+          var data = await new productModel(req.body).save();
 
           if (data) {
             return res
               .status(200)
-              .json({ message: 'category add sucessfull', data: data });
+              .json({ message: 'product add sucessfull', data: data });
           } else {
-            return res.status(400).json({ message: 'category not saved' });
+            return res.status(400).json({ message: 'product not saved' });
           }
         }
       } catch (err) {
@@ -70,19 +66,19 @@ export default async function handler(req: any, res: NextApiResponse) {
       }
     } else if (req.method == 'PUT') {
       try {
-        let category = await categoryModel.findOneAndUpdate(
+        let product = await productModel.findOneAndUpdate(
           { _id: req.body.id },
           req.body,
           {
             new: true,
           }
         );
-        if (category) {
+        if (product) {
           return res
             .status(200)
-            .json({ message: 'category update successfull', data: category });
+            .json({ message: 'product update successfull', data: product });
         } else {
-          return res.status(400).json({ message: 'category not updated' });
+          return res.status(400).json({ message: 'product not updated' });
         }
       } catch (err) {
         return res.status(400).json({ message: 'Something Went wrong' });
@@ -90,15 +86,15 @@ export default async function handler(req: any, res: NextApiResponse) {
     } else if (req.method == 'DELETE') {
       try {
         console.log('req.params?.id ', req.params?.id);
-        let category = await categoryModel.findOneAndDelete({
+        let product = await productModel.findOneAndDelete({
           _id: req.query?.id,
         });
-        if (category) {
+        if (product) {
           return res
             .status(200)
-            .json({ message: 'category delete successfull', data: category });
+            .json({ message: 'product delete successfull', data: product });
         } else {
-          return res.status(400).json({ message: 'category not found' });
+          return res.status(400).json({ message: 'product not found' });
         }
       } catch (err) {
         return res.status(400).json({ message: 'Something Went wrong' });
